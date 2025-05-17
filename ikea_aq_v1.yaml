@@ -1,38 +1,44 @@
 substitutions:
-## Location & Entity Names (Capitals and Spaces Allowed)
-  name: "Studio AQ"
+  name: "Living Room"  ## Location & Entity Names (Capitals and Spaces Allowed)
 
 esphome:
-  name: "air-quality-studio"
+  name: "air-quality-living-room" # Set the name to be shown in ESPHome
+  min_version: 2024.11.0 # Optional. Update or comment out if needed.
+  name_add_mac_suffix: false
 
 esp8266:
   board: d1_mini
 
 wifi:
-  ssid: !secret wifi_ssid
-  password: !secret wifi_password
+  ssid: !secret wifi_ssid # Pulls from ESPHome secrets
+  password: !secret wifi_password # Pulls from ESPHome secrets
 
+# Enable Home Assistant API
 api:
 
+# Allow Over-The-Air updates
 ota:
   platform: esphome
+
+# Enable logging
 logger:
   logs:
     sensor: none
     binary_sensor: none
+    homeassistant.binary_sensor: none
     pm1006: none
-    ccs811: none
+    ens160_i2c: none
+    bme280_i2c: none
 
 ## Serial Port for the IKEA Sensor
 uart:
-  - rx_pin: D7
-    # tx_pin: D8
+  - rx_pin: 13
     baud_rate: 9600
 
 i2c:
   ## I²C Port - For Temp/Humidity/Pressure & CO²/VOC Sensors
-  sda: D1
-  scl: D2
+  sda: 4
+  scl: 5
   scan: true
   id: bus_a
 
@@ -43,11 +49,12 @@ binary_sensor:
     id: fan
     pin:
       number: D4
+      # D4
       inverted: true
 
   ## Brightness Sensor for HA Automations
   - platform: template
-    name: $name Bright
+    name: $name Lights
     id: bright
 
 sensor:
@@ -55,20 +62,25 @@ sensor:
   - platform: pm1006
     id: aq_sensor
     pm_2_5:
-      name: $name 2.5µg
+      name: $name 2.5µm Concentration
+      accuracy_decimals: 1
 
   ## CO²/VOC Sensor
-  - platform: ccs811
+  - platform: ens160_i2c
     eco2:
       name: $name CO²
       accuracy_decimals: 0
     tvoc:
       name: $name T-VOC
       accuracy_decimals: 0
-    address: 0x5A
+    aqi:
+      name: $name Air Quality Index
+      id: ens160_air_quality_index
+    address: 0x53
     update_interval: 10s
-    temperature: bme_temp
-    humidity: bme_humi
+    compensation:
+      temperature: bme_temp
+      humidity: bme_humi
     ## After Calibration, Uncomment and change "baseline:"
     # baseline: 0x4AB7
 
@@ -103,6 +115,16 @@ sensor:
             } else {
               id(bright).publish_state(false);
               }
-      # - logger.log:
-      #     format: "Light Level %.6f"
-      #     args: id(light_sensor).state
+
+text_sensor:
+  - platform: template
+    name: $name Air Quality Rating
+    lambda: |-
+      switch ( (int) (id(ens160_air_quality_index).state) ) {
+        case 1: return {"Excellent"};
+        case 2: return {"Good"};
+        case 3: return {"Moderate"};
+        case 4: return {"Poor"};
+        case 5: return {"Unhealthy"};
+        default: return {"Not Available"};
+      }

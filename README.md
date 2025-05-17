@@ -20,3 +20,7 @@ Converting and adding sensors to an off-the-shelf **VINDRIKTNING Air Quality Sen
 
 #### 🎬YouTube tutorials:
 [Part 1 - IKEA Air Quality ESPHome Convert](https://youtu.be/YmqtMTO5NVc)
+
+#### References:
+1. [Smart Home Maker](https://the-smart-home-maker.com/esphome-ikea-sensor-allow-awesome-new-automations-in-home-assistant/)
+2. [Hack the IKEA Air Quality Sensor: 7-in-1 Full ESPHome Tutorial](https://www.youtube.com/watch?v=YmqtMTO5NVc)

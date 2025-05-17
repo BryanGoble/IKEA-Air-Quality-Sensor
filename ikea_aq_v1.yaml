@@ -103,6 +103,7 @@ sensor:
     update_interval: 10s
 
   ## The IKEA Light Level Sensor
+  # Comment out this whole section if ommitting the 10K ohm resistor to the light sensor
   - platform: adc
     id: light_sensor
     pin: A0
